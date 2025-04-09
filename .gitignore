@@ -1,0 +1,10 @@
+__pycache__
+outputs
+batches
+.DS_Store
+.vscode
+.env
+.venv
+.git
+diff.csv
+ff.csv

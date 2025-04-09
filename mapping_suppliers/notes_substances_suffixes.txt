@@ -1,0 +1,113 @@
+
+
+# SUBSTANCE_NAME_SUFFIXES = [
+#     # --- Pharmacopeia / Quality Standards / Grades ---
+#     'usp', 'bp', 'ep', 'jp', 'nf', # Major Pharmacopeias (US, British, European, Japanese, National Formulary)
+#     'fcc',                  # Food Chemicals Codex
+#     'acs',                  # American Chemical Society grade
+#     'reagent', 'reagent grade',
+#     'technical', 'technical grade',
+#     'ph eur', 'eur ph',     # European Pharmacopeia variations
+#     'pharma grade', 'pharmaceutical grade',
+#     'analytical grade',
+#     'reference standard',
+#     'certified',
+#     'pure', 'ultrapure', 'high purity',
+
+#     # # --- Salt Forms (Common Anions/Cations) ---
+#     # # Anions (forming salts with basic drugs)
+#     # 'hydrochloride', 'hcl',
+#     # 'sulfate', 'sulphate',
+#     # 'acetate',
+#     # 'citrate',
+#     # 'tartrate', 'bitartrate',
+#     # 'maleate',
+#     # 'fumarate',
+#     # 'mesylate', 'methanesulfonate',
+#     # 'tosylate', 'p-toluenesulfonate',
+#     # 'phosphate', 'dihydrogen phosphate', 'hydrogen phosphate',
+#     # 'nitrate',
+#     # 'bromide', 'hydrobromide',
+#     # 'chloride',
+#     # 'succinate',
+#     # 'besylate', 'benzenesulfonate',
+#     # 'lactate',
+#     # 'gluconate',
+#     # 'stearate',
+#     # 'palmitate',
+#     # 'malate',
+#     # 'edetate', 'edta', # Usually as calcium disodium edetate etc.
+#     # 'camsylate', 'camphorsulfonate',
+#     # 'esylate', 'ethanesulfonate',
+#     # 'isethionate',
+#     # 'napadisylate',
+#     # 'orotate',
+#     # 'pamoate',
+#     # 'xinafoate',
+
+#     # # Cations (forming salts with acidic drugs)
+#     # 'sodium', 'na',
+#     # 'potassium', 'k',
+#     # 'calcium', 'ca',
+#     # 'magnesium', 'mg',
+#     # 'lithium', 'li',
+#     # 'zinc', 'zn',
+#     # 'amine', 'meglumine', 'tromethamine', # Organic bases forming salts
+
+#     # # --- Hydration State ---
+#     # 'hydrate',
+#     # 'monohydrate', 'mono hydrate',
+#     # 'dihydrate', 'di hydrate',
+#     # 'trihydrate', 'tri hydrate',
+#     # 'hemihydrate', 'hemi hydrate',
+#     # 'sesquihydrate',
+#     # 'anhydrous', 'anhydrate',
+#     # 'hydro', # Sometimes used loosely
+
+#     # # --- Solvates ---
+#     # 'solvate',
+#     # 'ethanolate',
+#     # 'methanolate',
+#     # # (Less common, often specified like 'propan-2-ol solvate')
+
+#     # # --- Acid/Base Forms ---
+#     # 'acid',                 # e.g., 'folic acid' - use carefully, often part of the core name
+#     # 'free acid',
+#     # 'base',                 # e.g., 'amphetamine base' - use carefully
+#     # 'free base',
+
+#     # --- Isomers / Stereochemistry (Use VERY carefully - removal changes identity) ---
+#     # 'racemate', 'racemic',
+#     # 'dl-', 'l-', 'd-', '(+)-', '(-)-', '(r)-', '(s)-', 'cis-', 'trans-', 'meso-', 'alpha-', 'beta-', 'gamma-', 'delta-'
+#     # (Often essential to the substance identity, removing might be incorrect)
+
+#     # --- Other Descriptors ---
+#     # 'salt',                 # General term, e.g., 'sodium salt'
+#     # 'complex',
+#     # 'derivative',
+#     # 'analogue', 'analog',
+#     # 'ester',                # e.g., 'methyl ester' - often part of the core name
+#     # 'ether',                # e.g., 'ethyl ether' - often part of the core name
+#     # 'recombinant',          # For biologics
+#     # 'synthetic',
+#     # 'natural',
+#     # 'concentrate',          # e.g., 'protein concentrate'
+#     # 'extract',
+#     # 'peptide',
+#     # 'protein',
+#     # 'mixture',              # e.g., 'racemic mixture'
+#     # 'polymer',
+#     # 'poly',
+#     # '(cas no xxxxx)',       # Sometimes CAS numbers are appended
+#     # 'ferric', 'ferrous', 'ferrate', # Iron forms
+
+#     # --- Purity / Concentration (Less common as direct suffixes, often separate) ---
+#     # '%', 'percent', 'solution', 'conc', 'dilute'
+#     # (Usually numeric and harder to generalize as suffixes to strip)
+
+#     # sterility
+#     'non-sterile',
+#     'sterile',
+#     'non sterile',
+
+# ]

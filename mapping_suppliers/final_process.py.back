@@ -1,0 +1,170 @@
+import pandas as pd
+from utils import str_processing
+
+final_columns = [
+    "source",
+    "manufacturer_name",
+    "drug_parent_name",
+    "administration_route",
+    "manufacturer_required_api",
+    "manufacturer_required_api_strength",
+    "supplier_name",
+    "supplier_offered_api",
+    "supplier_offered_api_has_same_base",
+    "supplier_offered_api_has_same_form",
+    "supplier_offered_api_is_diluted",
+    "qf_supplier_id",
+    "qf_supplier_site_id",
+    "qf_supplier_site_name",
+    "qf_supplier_site_valid_audit_count",
+    "qf_supplier_site_has_valid_audit",
+    "qf_supplier_site_audited_quality_types",
+    "qf_supplier_site_first_audit_booked",
+    "qf_supplier_site_last_expiration",
+    "qf_supplier_site_audited_requested_api",
+    "qf_supplier_site_audited_id_audit",
+    "qf_supplier_site_audited_requested_product",
+    "qf_is_exact_match",
+    "qf_is_same_base",
+    "qf_is_same_form",
+    "qf_qcr",
+    "qf_qcr_date",
+]
+
+cleaned_suffix = "_cleaned"
+# manufacturer_name,drug_parent_name,administration_route,manufacturer_required_api,supplier_name,supplier_offered_api,supplier_offered_api_has_same_base,supplier_offered_api_has_same_form,supplier_offered_api_is_diluted,qf_supplier_site_id,source,manufacturer_required_api_strength
+
+df_unionned = pd.read_csv("outputs/hikma_union_us_europe.csv")
+df_unionned["supplier_offered_api" + cleaned_suffix] = df_unionned["supplier_offered_api"].apply(str_processing.cleaning_id)
+# qf_supplier_site_id to int
+df_unionned["qf_supplier_site_id"] = df_unionned["qf_supplier_site_id"].astype('Int64')
+print(f"Loaded {df_unionned.shape[0]} rows from hikma_union_us_europe.csv")
+
+# qf_supplier_id,qf_supplier_site_id,qf_supplier_name,qf_supplier_site_name,qf_supplier_site_valid_audit_count,qf_supplier_site_has_valid_audit,qf_supplier_site_audited_quality_types,qf_supplier_site_first_audit_booked,qf_supplier_site_last_expiration,qf_supplier_site_audited_requested_api,qf_supplier_site_audited_requested_product,qf_supplier_site_audited_id_audit
+
+df_qf = pd.read_csv("inputs/qf_supplier_sites_full.csv")
+df_qf["qf_supplier_site_audited_requested_product" + cleaned_suffix] = df_qf["qf_supplier_site_audited_requested_product"].apply(str_processing.cleaning_id)
+df_qf["qf_supplier_site_id"] = df_qf["qf_supplier_site_id"].astype('Int64')
+print(f"Loaded {df_qf.shape[0]} rows from qf_supplier_sites_full.csv")
+
+
+
+# PUBLIC_mapped_substance,QF_mapped_substance,have_same_base,have_same_form,is_diluted
+df_substance_mapping = pd.read_csv("outputs/substance_hikma_to_qf_mapping.csv")
+df_substance_mapping["PUBLIC_mapped_substance" + cleaned_suffix] = df_substance_mapping["PUBLIC_mapped_substance"].apply(str_processing.cleaning_id)
+df_substance_mapping["QF_mapped_substance" + cleaned_suffix] = df_substance_mapping["QF_mapped_substance"].apply(str_processing.cleaning_id)
+print(f"Loaded {df_substance_mapping.shape[0]} rows from substance_hikma_to_qf_mapping.csv")
+# rename have_same_base,have_same_form,is_diluted to qf_is_same_base,qf_is_same_form,qf_is_diluted
+df_substance_mapping = df_substance_mapping.rename(
+    columns={
+        "have_same_base": "qf_is_same_base",
+        "have_same_form": "qf_is_same_form",
+        "is_diluted": "qf_is_diluted"
+    }
+)
+
+print(f"Merging dataframes hikma_union_us_europe.csv, qf_supplier_sites_full.csv")
+# left merge df_unionned with df_qf on qf_supplier_site_id = qf_supplier_site_id
+df_intermediate = pd.merge(
+    df_unionned,
+    df_qf,
+    left_on=["qf_supplier_site_id"],
+    right_on=["qf_supplier_site_id"],
+    how="left"
+)
+print(f"Merged {df_intermediate.shape[0]} rows from hikma_union_us_europe.csv and qf_supplier_sites_full.csv as df_intermediate")
+
+print(f"Merging dataframes df_intermediate, substance_hikma_to_qf_mapping.csv")
+# left merge df_intermediate with df_substance_mapping on "supplier_offered_api" + cleaned_suffix = "PUBLIC_mapped_substance" + cleaned_suffix and "qf_supplier_site_audited_requested_product" + cleaned_suffix = "QF_mapped_substance" + cleaned_suffix
+df_intermediate_2 = pd.merge(
+    df_intermediate,
+    df_substance_mapping,
+    left_on=["supplier_offered_api" + cleaned_suffix, "qf_supplier_site_audited_requested_product" + cleaned_suffix],
+    right_on=["PUBLIC_mapped_substance" + cleaned_suffix, "QF_mapped_substance" + cleaned_suffix],
+    how="left"
+)
+print(f"Merged {df_intermediate_2.shape[0]} rows from df_intermediate and substance_hikma_to_qf_mapping.csv as df_intermediate_2")
+
+# compute qf_is_exact_match "PUBLIC_mapped_substance" + cleaned_suffix
+df_intermediate_2["qf_is_exact_match"] = df_intermediate_2.apply(
+    lambda row: row["supplier_offered_api" + cleaned_suffix] == row["PUBLIC_mapped_substance" + cleaned_suffix] and
+                 row["qf_supplier_site_audited_requested_product" + cleaned_suffix] == row["QF_mapped_substance" + cleaned_suffix],
+    axis=1
+)
+
+# drop the columns that are not needed
+intermediate_2_columns = [col for col in df_intermediate_2.columns if col in final_columns]
+# remove qf_supplier_site_audited_requested_product
+intermediate_2_columns.remove("qf_supplier_site_audited_requested_product")
+df_intermediate_2 = df_intermediate_2[intermediate_2_columns]
+# group by everything except qf_is_exact_match and do a boolean OR
+df_intermediate_3 = df_intermediate_2.groupby(intermediate_2_columns[:-1], as_index=False).agg(
+    qf_is_exact_match=("qf_is_exact_match", "any")
+)
+# if qf_is_exact_match is true find the row with qf_is_exact_match in df_intermediate_2 in order to get the qf_supplier_site_audited_requested_product
+# Can you fix this ?
+df_intermediate_3 = pd.merge(
+    df_intermediate_3,
+    df_intermediate_2[["qf_supplier_site_audited_requested_product" + cleaned_suffix, "qf_is_exact_match"]],
+    left_on=["qf_supplier_site_audited_requested_product" + cleaned_suffix, "qf_is_exact_match"],
+    right_on=["qf_supplier_site_audited_requested_product" + cleaned_suffix, "qf_is_exact_match"],
+    how="left"
+)
+
+df_2024 = pd.read_csv("inputs/qcr_2024.csv")
+df_2024 = df_2024[['Final QCR', 'auditID', 'qualityType']]
+# rename auditID to id_audit
+df_2024.rename(columns={'auditID': 'id_audit'}, inplace=True)
+
+df_2025 = pd.read_csv("inputs/qcr_2025.csv")
+df_2025 = df_2025[['Final QCR', 'auditID', 'qualityType']]
+# rename auditID to id_audit
+df_2025.rename(columns={'auditID': 'id_audit'}, inplace=True)
+
+
+# combine the data 
+all = pd.concat([df_2024, df_2025], axis=0)
+# Filter the data
+all = all[all['qualityType'] == 'GMP_API']
+all = all[all['Final QCR'] != 'Missing/wrong Data']
+
+df_audits = pd.read_csv("inputs/audits.csv")
+df_audits['audit_date_cmp'] = pd.to_datetime(df_audits['audit_date'])
+
+# inner join the data df_audits with all
+qcr_merged = pd.merge(df_audits, all, on='id_audit', how='inner')
+qcr_merged_sorted = qcr_merged.sort_values(by=['ceapp_id_supplier_site', 'audit_date_cmp'], ascending=[True, False])
+
+latest_qcr_per_site = qcr_merged_sorted.groupby('ceapp_id_supplier_site').first().reset_index()
+qcr_final = latest_qcr_per_site[['ceapp_id_supplier_site', 'id_audit', 'audit_date', 'Final QCR']]
+qcr_final = qcr_final.rename(columns={'Final QCR': 'qf_qcr'})
+qcr_final = qcr_final.rename(columns={'audit_date': 'qf_qcr_date'})
+print("Loaded qcr_final with latest QCR per site")
+
+print(f"Merging dataframes df_intermediate_2, qcr_final")
+# left merge df_intermediate_2 with qcr_final on qf_supplier_site_id = ceapp_id_supplier_site
+df_final = pd.merge(
+    df_intermediate_2,
+    qcr_final,
+    left_on=["qf_supplier_site_id"],
+    right_on=["ceapp_id_supplier_site"],
+    how="left"
+)
+print(f"Merged {df_final.shape[0]} rows from df_intermediate_2 and qcr_final as df_final")
+
+# limit the columns to the final_columns
+df_final = df_final[final_columns]
+# remove duplicates
+df_final = df_final.drop_duplicates()
+
+# sort by source, manufacturer_name and drug_parent_name
+df_final = df_final.sort_values(by=["source","manufacturer_name", "drug_parent_name"])
+# reset index
+df_final = df_final.reset_index(drop=True)
+
+
+print(f"Final dataframe df_final has {df_final.shape[0]} rows")
+
+# export df_final to csv
+df_final.to_csv("outputs/final_output.csv", index=False)
+print("Exported df_final to outputs/final_output.csv")

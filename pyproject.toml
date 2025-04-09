@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "mapping-suppliers"
+version = "0.1.0"
+description = ""
+authors = ["Jérôme Arouna <jerome.arouna@qualifyze.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+openai = "^1.70.0"
+pandas = "^2.2.3"
+thefuzz = "^0.22.1"
+dotenv = "^0.9.9"
+sentence-transformers = "^4.0.2"
+rapidfuzz = "^3.13.0"
+tqdm = "^4.67.1"
+unidecode = "^1.3.8"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
