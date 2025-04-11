@@ -183,19 +183,27 @@ def get_splitted_rows(df: pd.DataFrame, item_column: str, prefix: str, separator
                 items_for_row = get_splitted_items(df, item_column, separator, row)
 
                 for item in items_for_row:
-                    if item != "":
+                    if item != "" and prefix is not None:
                         # Add the full row with the new item to the result and add the prefix to all column names
                         new_row = row.copy()
                         new_row = new_row.rename(lambda x: f"{prefix}_{x}")
                         new_row[f"{prefix}_{item_column}"] = item
                         result.append(new_row.to_dict())
+                    elif item != "":
+                        new_row = row.copy()
+                        new_row[f"{item_column}"] = item
+                        result.append(new_row.to_dict())
 
             else:
-                # remove continous spaces
-                new_row = row.copy()
-                new_row = new_row.rename(lambda x: f"{prefix}_{x}")
-                new_row[f"{prefix}_{item_column}"] = item
-                result.append(new_row.to_dict())
+                if prefix is not None:
+                    # remove continous spaces
+                    new_row = row.copy()
+                    new_row = new_row.rename(lambda x: f"{prefix}_{x}")
+                    new_row[f"{prefix}_{item_column}"] = item
+                    result.append(new_row.to_dict())
+                else:
+                    new_row = row.copy()
+                    result.append(new_row.to_dict())
 
     return result
 

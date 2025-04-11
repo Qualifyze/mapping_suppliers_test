@@ -32,14 +32,14 @@ from utils import str_processing
 
 
 #  qf_supplier_sites_full
-file = "inputs/qf_supplier_sites_full.csv"
+file = "inputs/qf_supplier_sites.csv"
 
 df = pd.read_csv(file)
 print(f"Loaded {file} with {df.shape[0]} rows")
 
-df["qf_supplier_site_audited_requested_product_cleaned"] = df["qf_supplier_site_audited_requested_product"].apply(str_processing.cleaning_id)
+df["ceapp_supplier_site_name_cleaned"] = df["ceapp_supplier_site_name"].apply(str_processing.cleaning_id)
 
 print(f"Cleaned {file} with {df.shape[0]} rows")
 # save the cleaned file
-df.to_csv("outputs/qf_supplier_sites_full.csv", index=False)
+df.to_csv("outputs/qf_supplier_sites.csv", index=False)
 

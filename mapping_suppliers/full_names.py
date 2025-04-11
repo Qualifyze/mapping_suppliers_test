@@ -18,14 +18,3 @@ df_union = df_union.drop_duplicates()
 df_union = df_union[df_union['supplier_name'] != '']
 # save the dataframe to a csv file
 df_union.to_csv("outputs/public_supplier_names.csv", index=False)
-
-qf = pd.read_csv("inputs/qf_supplier_sites.csv")
-# keep the columns ceapp_supplier_site_name and rename it to supplier_name
-qf = qf[['ceapp_supplier_site_name']]
-qf = qf.rename(columns={'ceapp_supplier_site_name': 'supplier_name'})
-# drop duplicates
-qf = qf.drop_duplicates()
-# remove empty strings
-qf = qf[qf['supplier_name'] != '']
-# save the dataframe to a csv file
-qf.to_csv("outputs/qf_supplier_names.csv", index=False)

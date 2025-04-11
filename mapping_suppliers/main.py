@@ -393,7 +393,7 @@ if __name__ == "__main__":
                 df_source_1 = pd.read_csv(f'inputs/{mapping_config.source_1_filename}')
             elif os.path.exists(f'outputs/{mapping_config.source_1_filename}'):
                 df_source_1 = pd.read_csv(f'outputs/{mapping_config.source_1_filename}')
-            df_source_1[mapping_config.source_1_id_cleaned] = df_source_1[mapping_config.source_1_id].apply(str_processing.cleaning_id)
+            # df_source_1[mapping_config.source_1_id_cleaned] = df_source_1[mapping_config.source_1_id].apply(str_processing.cleaning_id)
             df_source_1 = df_source_1[df_source_1[mapping_config.source_1_id_cleaned].notna() & df_source_1[mapping_config.source_1_id_cleaned] != '']
 
             print(f"Loading files for mapping: {args.mapping_name} 2")
@@ -403,7 +403,7 @@ if __name__ == "__main__":
             elif os.path.exists(f'outputs/{mapping_config.source_2_filename}'):
                 df_source_2 = pd.read_csv(f'outputs/{mapping_config.source_2_filename}')
             
-            df_source_2[mapping_config.source_2_id_cleaned] = df_source_2[mapping_config.source_2_id].apply(str_processing.cleaning_id)
+            # df_source_2[mapping_config.source_2_id_cleaned] = df_source_2[mapping_config.source_2_id].apply(str_processing.cleaning_id)
             df_source_2 = df_source_2[df_source_2[mapping_config.source_2_id_cleaned].notna() & df_source_2[mapping_config.source_2_id_cleaned] != '']
 
 

@@ -1,19 +1,4 @@
--- product list
-select
-    replace(request_audited_product, chr(160), ' ') as request_audited_product,
-    count(*) as r_count
-from warehouse.requests
-where
-    request_audited_product is not null
-    and lower(request_audited_product) not in (
-                                               'tbd', 'to be confirmed', 'to be defined', 'test', 'n/a', 'other', 'x',
-                                              'tbc', 'tba', 'tdb', '-', 'a', '.', 'q', 'n', 'd', 'na', 'n.a.'
-                                              )
-group by request_audited_product
-order by len(request_audited_product);
 
-
--- supplier site data
 
 with
 
@@ -80,4 +65,4 @@ group by
     audit_aggregates.qf_supplier_site_first_audit_booked,
     audit_aggregates.qf_supplier_site_last_expiration,
     lower(replace(requests.request_audited_product, chr(160), ' '))
-order by qf_supplier_id, qf_supplier_site_id;
+order by qf_supplier_id, qf_supplier_site_id

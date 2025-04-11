@@ -14,12 +14,12 @@ class BatchRetUtil:
         load_dotenv()
         self.client = OpenAI()
 
-        self.batch_ids = self.get_latest_batch_ids(batches_folder)
-        self.batches = self.get_batch_details()
+        self.batch_datas = self.get_latest_batch_datas(batches_folder)
+        self.batches_plus = self.get_batch_details()
         
     
-    def get_latest_batch_ids(self, batches_folder):
-        batch_ids = []
+    def get_latest_batch_datas(self, batches_folder):
+        batch_datas = []
 
         batch_files = os.listdir(batches_folder)
         # the folder names are date in the %Y_%m_%d_%H_%M_%S format
@@ -31,21 +31,28 @@ class BatchRetUtil:
         with open(os.path.join(latest_batch_path, "inputs/batch_recap.json"), "r") as f:
             recap = json.load(f)
             for batch in recap["batches"]:
-                batch_ids.append(batch["batch_id"])
+                batch_datas.append({
+                    'batch_id': batch["batch_id"],
+                    'batch_input_file_path': batch["batch_input_file_path"],
+                })
 
-        return batch_ids
+        return batch_datas
     
     def get_batch_details(self):
-        batches = []
-        for batch_id in self.batch_ids:
-            batch = self.client.batches.retrieve(batch_id)
-            batches.append(batch)
+        batches_plus = []
+        for batch_data in self.batch_datas:
+            batch = self.client.batches.retrieve(batch_data['batch_id'])
+            batches_plus.append({
+                'batch': batch,
+                'batch_input_file_path': batch_data['batch_input_file_path']
+            })
 
         latest_batch = None
         # count the number of non completed batches
         non_completed_batches = 0
-        for batch in batches:
+        for batch_plus in batches_plus:
             # print(f"Batch : {batch}")
+            batch = batch_plus['batch']
             if batch.status != "completed":
                 non_completed_batches += 1
 
@@ -55,25 +62,26 @@ class BatchRetUtil:
                     latest_batch = batch
         
         if non_completed_batches > 0:
-            raise Exception(f"There are {non_completed_batches} / {len(batches)} non completed batches. Wait for them to be completed before running this script.")
+            raise Exception(f"There are {non_completed_batches} / {len(batches_plus)} non completed batches. Wait for them to be completed before running this script.")
         
         latest_batch_completed_at = datetime.datetime.fromtimestamp(latest_batch.completed_at, datetime.timezone.utc).astimezone()
 
-        print(f"All ({len(batches)}) batches are completed with the latest completion time at {latest_batch_completed_at}")
+        print(f"All ({len(batches_plus)}) batches are completed with the latest completion time at {latest_batch_completed_at}")
         
         # print(f"Batch Details: {latest_batch}")
 
-        return batches
+        return batches_plus
     
     def get_contents(self):
         contents = []
         contents_as_json = []
         os.makedirs(os.path.join(self.latest_batch_path, "outputs"), exist_ok=True)
 
-        corrupted_content_count = 0
+        corrupted_contents = []
         total_content_count = 0
 
-        for batch in self.batches:
+        for batch_plus in self.batches_plus:
+            batch = batch_plus['batch']
             if batch.status == "completed":
                 response_file = self.client.files.content(batch.output_file_id)
 
@@ -98,7 +106,8 @@ class BatchRetUtil:
 
 
                         contents.append({
-                            'custom_id': row['response'],
+                            'batch_input_file_path': batch_plus['batch_input_file_path'],
+                            'custom_id': row['custom_id'],
                             'content': choice['message']['content']
                         })
 
@@ -108,15 +117,29 @@ class BatchRetUtil:
                 content_json = json.loads(content)
                 contents_as_json.append(content_json)
             except json.JSONDecodeError as e:
-                corrupted_content_count += 1
                 try:
-
                     last_brace_index = content.rfind(',{')
-                    contents_as_json.append(json.loads(content[:last_brace_index]+']}'))
+                    current_content_as_json = json.loads(content[:last_brace_index]+']}')
+                    contents_as_json.append(current_content_as_json)
+
+                    corrupted_contents.append({
+                        'batch_input_file_path': item['batch_input_file_path'],
+                        'custom_id': item['custom_id'],
+                        'parsed_content': current_content_as_json
+                    })
                 except json.JSONDecodeError as e:
                     print(f"Biig Parsing error: {e}")
 
-        print(f"Corrupted JSON count: {corrupted_content_count} / {total_content_count}")
+        print(f"Corrupted JSON count: {len(corrupted_contents)} / {total_content_count}")
+
+
+        # for corrupted_content in corrupted_contents:
+        #     # read the jsonl file and find the request in the original batch input file
+        #     with open(corrupted_content['batch_input_file_path'], "r") as f:
+        #         for line in f:
+        #             if corrupted_content['custom_id'] in line:
+        #                 for mapping in corrupted_content['parsed_content']['mappings']:
+        #                     new_line = ''
                         
             
         return contents_as_json

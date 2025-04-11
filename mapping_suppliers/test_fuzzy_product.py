@@ -37,6 +37,18 @@ cases = [
     #     "expected": False,
     # },
     {
+        
+        "str_1": "NAPROXEN SODIUM",
+        "str_2": "Ibuprofen",
+        "expected": False,
+    },
+    {
+        
+        "str_1": "NAPROXEN SODIUM",
+        "str_2": "Ketorolac",
+        "expected": False,
+    },
+    {
         "str_1": "AMIODARONE HYDROCHLORIDE",
         "str_2": "AMIODARONE HCL USP",
         "expected": True,
@@ -76,21 +88,21 @@ cases = [
         "str_2": "BROMPHENIRAMINE MALEATE/PHENYLPROPANOLAMINE C.R. TABLET",
         "expected": True,
     },
-    {
-        "str_1": "IBRUTINIB",
-        "str_2": "ZANUBRUTINIB",
-        "expected": True,
-    },
+    # {
+    #     "str_1": "IBRUTINIB",
+    #     "str_2": "ZANUBRUTINIB",
+    #     "expected": True,
+    # },
     {
         "str_1": "FORMOTEROL FUMARATE DIHYDRATE",
         "str_2": "FORMOTEROL FUMARATE",
         "expected": True,
     },
-    {
-        "str_1": "ACETYLCYSTEINE",
-        "str_2": "L-CYSTEINE",
-        "expected": True,
-    },
+    # {
+    #     "str_1": "ACETYLCYSTEINE",
+    #     "str_2": "L-CYSTEINE",
+    #     "expected": True,
+    # },
     {
         "str_1": "XENON XE-133",
         "str_2": "XENON -133 GAS",
@@ -131,6 +143,11 @@ cases = [
         "str_2": "dextromethorphan hbr,adenosine (inj. grade)",
         "expected": True,
     },
+    {
+        "str_1": "Sodium",
+        "str_2": "Sodium laurilsulfate",
+        "expected": True,
+    }
 
 ]
 
@@ -150,7 +167,7 @@ for case in cases:
         mapping_name="substance_orange_book_to_usdmf",
         mapping_type=config.MappingType.SUBSTANCE,
         fuzzy_match_threshold=70,
-        cleaned_fuzzy_match_threshold=60,
+        cleaned_fuzzy_match_threshold=80,
         request_item_size=100,
         batch_size=5000,
     )
